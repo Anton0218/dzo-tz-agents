@@ -1,0 +1,88 @@
+{
+  "eek_tz_2024": {
+    "source": "https://eec.eaeunion.org/upload/iblock/474/s35m15bhwpgshpcwo4ajapf4mgdenqzo/1205.pdf",
+    "document_type": "ТЗ (Техническое задание)",
+    "procurement_type": "Открытый конкурс",
+    "year": 2024,
+    "nmts_rub": 18332016,
+    "agent": "tz",
+    "sections_present": {
+      "цель_закупки": true,
+      "требования": true,
+      "количество": true,
+      "срок_поставки": true,
+      "нормативная_база": true,
+      "место_поставки": false,
+      "критерии_оценки": false,
+      "порядок_оплаты": false
+    },
+    "sections_score_pct": 62.5,
+    "expert_score_pct": 87.5,
+    "expert_decision": "ПРИНЯТЬ С ЗАМЕЧАНИЕМ",
+    "rules_engine_decision": "ВЕРНУТЬ НА ДОРАБОТКУ",
+    "decisions_match": false,
+    "discrepancy_reason": "Агент использует более строгий порог (85%), эксперт допускает принятие с устным замечанием",
+    "critical_gaps": ["место поставки"],
+    "non_critical_gaps": ["критерии оценки"]
+  },
+  "rbank_tz_2021": {
+    "source": "https://rbank.by/upload/medialibrary/a99/Tekh.zadanie-na-tender.pdf",
+    "document_type": "ТЗ (Техническое задание)",
+    "procurement_type": "Тендер на поставку",
+    "year": 2021,
+    "nmts_rub": null,
+    "agent": "tz",
+    "sections_present": {
+      "цель_закупки": false,
+      "требования": true,
+      "количество": true,
+      "срок_поставки": true,
+      "нормативная_база": false,
+      "место_поставки": false,
+      "критерии_оценки": false,
+      "порядок_оплаты": true
+    },
+    "sections_score_pct": 37.5,
+    "expert_score_pct": 56.0,
+    "expert_decision": "ВЕРНУТЬ НА ДОРАБОТКУ",
+    "rules_engine_decision": "ПРИНЯТЬ",
+    "decisions_match": false,
+    "discrepancy_reason": "ЛОЖНОПОЛОЖИТЕЛЬНЫЙ РЕЗУЛЬТАТ rules-engine: keyword matching не различает 'г.' в адресе и в характеристиках. LLM-агент корректно обнаружит ≥2 отсутствующих раздела.",
+    "critical_gaps": ["цель закупки", "место поставки"],
+    "non_critical_gaps": ["нормативная база", "критерии оценки"]
+  },
+  "dzo_application": {
+    "source": null,
+    "document_type": "Заявка ДЗО",
+    "procurement_type": "Открытый конкурс ДЗО",
+    "year": 2025,
+    "nmts_rub": 8500000,
+    "agent": "dzo",
+    "sections_present": {
+      "реквизиты_компании": true,
+      "предмет_заявки": true,
+      "стоимость": true,
+      "квалификация": true,
+      "перечень_вложений": true,
+      "банковская_гарантия": false
+    },
+    "sections_score_pct": 83.3,
+    "expert_score_pct": 80.0,
+    "expert_decision": "ВЕРНУТЬ НА ДОРАБОТКУ",
+    "rules_engine_decision": "ВЕРНУТЬ НА ДОРАБОТКУ",
+    "decisions_match": true,
+    "discrepancy_reason": null,
+    "critical_gaps": ["банковская гарантия"],
+    "non_critical_gaps": []
+  },
+  "summary": {
+    "total_docs_tested": 3,
+    "decisions_match_count": 1,
+    "decisions_match_pct": 33.3,
+    "false_positives": 1,
+    "false_negatives": 0,
+    "analysis_date": "2026-04-11",
+    "llm_mode": "rules-engine only (no LLM key)",
+    "key_finding": "Rules-engine точен на документах с явными маркерами (DZO), но даёт ложноположительные результаты при keyword-matching (rbank). LLM-режим устраняет это ограничение."
+  }
+}
