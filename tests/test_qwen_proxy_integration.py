@@ -2,7 +2,7 @@
 Интеграционные тесты LLM через собственный Qwen прокси.
 
 Сервис: https://qwen-proxy-bdt6.onrender.com
-Модели: qwen3-32b, qwen-coder
+Модель по умолчанию: qwen3-32b
 
 Запуск (unit, без API):
   pytest tests/test_qwen_proxy_integration.py -v
@@ -22,7 +22,7 @@ import pytest
 
 QWEN_PROXY_BASE = "https://qwen-proxy-bdt6.onrender.com"
 QWEN_DEFAULT_MODEL = "qwen3-32b"
-QWEN_CODER_MODEL = "qwen-coder"
+QWEN_MODEL = os.environ.get("QWEN_PROXY_MODEL", QWEN_DEFAULT_MODEL)
 
 # Источники правды (ground truth) для DZO/ТЗ кейсов
 GROUND_TRUTH = {
@@ -160,9 +160,9 @@ class TestQwenProxyConfig:
             "LLM_BACKEND": "qwen_proxy",
             "OPENAI_API_KEY": "test-api-key",
             "OPENAI_API_BASE": None,
-            "MODEL_NAME": "qwen-coder",
+            "MODEL_NAME": "qwen3-32b",
         })
-        assert kwargs.get("model") == "qwen-coder"
+        assert kwargs.get("model") == "qwen3-32b"
 
     def test_other_backends_unaffected(self, monkeypatch):
         for backend, key in [("openai", "sk-regular"), ("deepseek", "ds-key")]:
@@ -186,7 +186,6 @@ class TestQwenProxyConnectivity:
         assert r.status_code == 200
         models = [m["id"] for m in r.json().get("data", [])]
         assert "qwen3-32b" in models
-        assert "qwen-coder" in models
 
     def test_basic_chat_russian(self, qwen_cfg):
         result = _chat(qwen_cfg, [{"role": "user", "content": "Ответь: тест прошёл"}], max_tokens=80)
@@ -198,7 +197,7 @@ class TestQwenProxyConnectivity:
         assert result["usage"]["prompt_tokens"] > 0
 
     def test_qwen_coder_responds(self, qwen_cfg):
-        result = _chat({**qwen_cfg, "model": QWEN_CODER_MODEL},
+        result = _chat({**qwen_cfg, "model": QWEN_MODEL},
                        [{"role": "user", "content": "print('hello')"}], max_tokens=50)
         assert "choices" in result
 
