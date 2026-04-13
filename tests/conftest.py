@@ -128,3 +128,73 @@ def _install_mocks() -> None:
 
 
 _install_mocks()
+
+
+# ---------------------------------------------------------------------------
+# Fixture: restore real LLM for @pytest.mark.e2e tests
+# ---------------------------------------------------------------------------
+import pytest as _pytest_module
+
+@_pytest_module.fixture(autouse=True)
+def _restore_real_llm_for_e2e(request):
+    """For @e2e tests: use real LLM. For other tests: keep mocks."""
+    import importlib as _il
+    import os as _os
+
+    if not request.node.get_closest_marker("e2e"):
+        yield
+        return
+
+    # Override env with real creds
+    _orig = {k: _os.environ.get(k) for k in ("OPENAI_API_KEY","OPENAI_API_BASE","MODEL_NAME")}
+    _os.environ["OPENAI_API_KEY"]  = "qwen32masterkey"
+    _os.environ["OPENAI_API_BASE"] = "https://qwen-proxy-bdt6.onrender.com/v1"
+    _os.environ["MODEL_NAME"]      = "qwen3-32b"
+
+    # Reload config + shared.llm to pick up new env
+    import config as _cfg; _il.reload(_cfg)
+    import shared.llm as _sllm; _il.reload(_sllm)
+    import langgraph.prebuilt as _lgp; _il.reload(_lgp)
+    _real_build_llm = _sllm.build_llm
+    _real_cra       = _lgp.create_react_agent
+
+    # Patch agent modules that cached mock at import time
+    _agent_mods = [
+        "agent1_dzo_inspector.agent",
+        "agent2_tz_inspector.agent",
+        "agent21_tender_inspector.agent",
+        "agent3_collector_inspector.agent",
+    ]
+    _saved = {}
+    for _mname in _agent_mods:
+        try:
+            import sys as _sys
+            _m = _sys.modules.get(_mname) or _il.import_module(_mname)
+            _saved[_mname] = {
+                "cra": getattr(_m, "create_react_agent", None),
+                "bllm": getattr(_m, "build_llm", None),
+            }
+            _m.create_react_agent = _real_cra  # type: ignore
+            if hasattr(_m, "build_llm"):
+                _m.build_llm = _real_build_llm  # type: ignore
+        except Exception:
+            pass
+
+    yield
+
+    # Restore env
+    for k, v in _orig.items():
+        if v is not None:
+            _os.environ[k] = v
+        else:
+            _os.environ.pop(k, None)
+
+    # Restore mocks
+    import shared.llm as _sllm2; import langgraph.prebuilt as _lgp2
+    _sllm2.build_llm = lambda *a, **kw: __import__("unittest.mock", fromlist=["MagicMock"]).MagicMock()
+    import sys as _sys
+    for _mname, _sv in _saved.items():
+        _m = _sys.modules.get(_mname)
+        if _m:
+            if _sv["cra"]: _m.create_react_agent = _sv["cra"]  # type: ignore
+            if _sv["bllm"]: _m.build_llm = _sv["bllm"]  # type: ignore
